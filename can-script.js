@@ -15,10 +15,10 @@ document.querySelector('button').addEventListener(
 function addDonnee()
 // Récupère le json, et lance la fonction triage si le json est récupéré.
 {
-  fetch('produits.php').then(function (response) {
+  fetch('produits-tri.php').then(function (response) {
     if (response.ok) {
-      response.json().then(function (json) {
-        triage(json);//lancement asynchrone !!
+      response.json().then(function () {
+        selectCategory();//lancement asynchrone !!
       });
     } else {
       console.log('Network request for products.json failed with response ' + response.status + ': ' + response.statusText);
@@ -36,7 +36,7 @@ function addDonnee()
     if (!isNaN(saisie) || saisie.length < min_characters ) { 
       return [];
     }
-    fetch('produits.php')//fetch
+    fetch('produits-tri.php')//fetch
   .then(response => response.json())
   .then(response => traiterReponse(response, saisie))
   .catch(error => console.log("Erreur : " + error));
@@ -69,33 +69,48 @@ document.forms[0].searchTerm.addEventListener("change", function() {
 });
 
 //triage
-function triage(products) {
-  var valeur = { 0: "tous", 1: "legumes", 2: "soupe", 3: "viande" }
-  var type = valeur[document.forms[0].categorie.value];
-  var nutri = document.forms[0].nutri.value;
-  var lowerCaseSearchTerm = document.querySelector('#searchTerm').value.trim().toLowerCase();
+// function triage(products) {
+//   var valeur = { 0: "tous", 1: "legumes", 2: "soupe", 3: "viande" }
+//   var type = valeur[document.forms[0].categorie.value];
+//   var nutri = document.forms[0].nutri.value;
+//   var lowerCaseSearchTerm = document.querySelector('#searchTerm').value.trim().toLowerCase();
 
-  var finalGroup = [];
-  var i, j, tmp;
-    for (i = products.length - 1; i > 0; i--) {
-        j = Math.floor(Math.random() * (i + 1));
-        tmp = products[i];
-        products[i] = products[j];
-        products[j] = tmp;
-      }
+//   var finalGroup = [];
+//   var i, j, tmp;
+//     for (i = products.length - 1; i > 0; i--) {
+//         j = Math.floor(Math.random() * (i + 1));
+//         tmp = products[i];
+//         products[i] = products[j];
+//         products[j] = tmp;
+//       }
 
-  products.forEach(product => {
-    if (product.type === type || type === 'tous') {//sur la categorie
-      if (product.nutriscore === nutri || nutri === '0') {//sur le nutri
-        if (product.nom.toLowerCase().indexOf(lowerCaseSearchTerm) !== -1 || lowerCaseSearchTerm === '') {//sur le searchterm
-          finalGroup.push(product);
-        }
-      }
+//   products.forEach(product => {
+//     if (product.type === type || type === 'tous') {//sur la categorie
+//       if (product.nutriscore === nutri || nutri === '0') {//sur le nutri
+//         if (product.nom.toLowerCase().indexOf(lowerCaseSearchTerm) !== -1 || lowerCaseSearchTerm === '') {//sur le searchterm
+//           finalGroup.push(product);
+//         }
+//       }
+//     }
+//   });
+
+//   showProduct(finalGroup);
+// }
+function selectCategory() {
+  // if (e) e.preventDefault();//if : pas d'evenement au premier chargement
+  var myData = new FormData(document.forms[0]);
+  for (var x of myData) console.log(x);
+  fetch('produits-tri.php', { method: "POST", body: myData }).then(function (response) {
+    if (response.ok) {
+      response.json().then(function (json) {
+      showProduct(json);
+      });
+    } else {
+      console.log('Network request for products.json failed with response ' + response.status + ': ' + response.statusText);
     }
   });
-
-  showProduct(finalGroup);
 }
+
 compteur = 0; // Définition de la variable qui compte le nombre de produits dans le panier
 function ajouterPanier() {
   //Ajoute 1 au compteur du panier
