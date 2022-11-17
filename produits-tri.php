@@ -1,5 +1,5 @@
 <?php
-header("Content-type: application/json; charset=utf-8");
+// header("Content-type: application/json; charset=utf-8");
 // On se  connecte, voir cours
 include("connexion.php");
 //base de la requete

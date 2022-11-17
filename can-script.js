@@ -1,30 +1,25 @@
 //premier affichage
-addDonnee();
+// addDonnee();
 
 
 //Réinitialise les formulaires
-document.querySelector('button').addEventListener(
+document.getElementById('btnReset').addEventListener(
   'click', function (event) {
     event.preventDefault();
-    document.forms.choix.reset()
-    addDonnee();
+    document.forms[0].categorie.selectedIndex = 0;
+    document.forms[0].nutri.selectedIndex = 0;
+    document.forms[0].submit();
   });
 
-
-
-function addDonnee()
-// Récupère le json, et lance la fonction triage si le json est récupéré.
-{
-  fetch('produits-tri.php').then(function (response) {
-    if (response.ok) {
-      response.json().then(function () {
-        selectCategory();//lancement asynchrone !!
-      });
-    } else {
-      console.log('Network request for products.json failed with response ' + response.status + ': ' + response.statusText);
-    }
-  });
-}
+document.forms[0].categorie.addEventListener("change", function() {
+  document.forms[0].submit();
+});
+document.forms[0].nutri.addEventListener("change", function() {
+  document.forms[0].submit();
+});
+document.forms[0].searchTerm.addEventListener("change", function() {
+  document.forms[0].submit();
+});
 
   document.getElementById('searchTerm').addEventListener("keyup", function(event){autocompleteMatch(event)});
   function autocompleteMatch(event)
@@ -57,16 +52,32 @@ function addDonnee()
   }
 }
 
+compteur = 0; // Définition de la variable qui compte le nombre de produits dans le panier
+function ajouterPanier() {
+  //Ajoute 1 au compteur du panier
+  compteur +=1;
+  document.getElementById('panier').innerHTML = "";
+  document.getElementById('panier').innerHTML = compteur;
+}
+
+function addDonnee()
+// Récupère le json, et lance la fonction triage si le json est récupéré.
+{
+  fetch('produits-tri.php').then(function (response) {
+    if (response.ok) {
+      response.json().then(function () {
+        selectCategory();//lancement asynchrone !!
+      });
+    } else {
+      console.log('Network request for products.json failed with response ' + response.status + ': ' + response.statusText);
+    }
+  });
+}
+
+
+
 // Lancement de la fonction addDonnee pour mettre à jour l'affichage à chaque changement dans la recherche.
-document.forms[0].categorie.addEventListener("change", function() {
-  addDonnee();
-});
-document.forms[0].nutri.addEventListener("change", function() {
-    addDonnee();
-});
-document.forms[0].searchTerm.addEventListener("change", function() {
-      addDonnee();
-});
+
 
 //triage
 // function triage(products) {
@@ -96,79 +107,90 @@ document.forms[0].searchTerm.addEventListener("change", function() {
 
 //   showProduct(finalGroup);
 // }
-function selectCategory() {
-  // if (e) e.preventDefault();//if : pas d'evenement au premier chargement
-  var myData = new FormData(document.forms[0]);
-  for (var x of myData) console.log(x);
-  fetch('produits-tri.php', { method: "POST", body: myData }).then(function (response) {
-    if (response.ok) {
-      response.json().then(function (json) {
-      showProduct(json);
-      });
-    } else {
-      console.log('Network request for products.json failed with response ' + response.status + ': ' + response.statusText);
+// function selectCategory() {
+//   // if (e) e.preventDefault();//if : pas d'evenement au premier chargement
+//   var myData = new FormData(document.forms[0]);
+//   for (var x of myData) console.log(x);
+//   fetch('produits-tri.php', { method: "POST", body: myData }).then(function (response) {
+//     if (response.ok) {
+//       response.json().then(function (json) {
+//       showProduct(json);
+//       });
+//     } else {
+//       console.log('Network request for products.json failed with response ' + response.status + ': ' + response.statusText);
+//     }
+//   });
+// }
+
+function getCookie(name){
+  if(document.cookie.length == 0)
+    return null;
+
+  var regSepCookie = new RegExp('(; )', 'g');
+  var cookies = document.cookie.split(regSepCookie);
+
+  for(var i = 0; i < cookies.length; i++){
+    var regInfo = new RegExp('=', 'g');
+    var infos = cookies[i].split(regInfo);
+    if(infos[0] == name){
+      return unescape(infos[1]);
     }
-  });
+  }
+  return null;
 }
 
-compteur = 0; // Définition de la variable qui compte le nombre de produits dans le panier
-function ajouterPanier() {
-  //Ajoute 1 au compteur du panier
-  compteur +=1;
-  document.getElementById('panier').innerHTML = "";
-  document.getElementById('panier').innerHTML = compteur;
-}
 
-//Affichage
-function showProduct(finalGroup) {
 
-  var main = document.querySelector('main');
-  //vidage
-  while (main.firstChild) {
-    main.removeChild(main.firstChild);
-  }
-  // affichage propduits
-  if (finalGroup.length === 0) {
-    var para = document.createElement('p');
-    para.textContent = 'Aucun résultats';
-    main.appendChild(para);
-  }
-  else {
-    finalGroup.forEach(product => {
-      var section = document.createElement('div');
-      var bouton = document.createElement('button')
-      var cadre = document.createElement('div')
-      section.setAttribute('class', product.type);
-      section.classList.add("card");
-      section.classList.add("text-center");
-      bouton.setAttribute('class', 'button'); // ajout du bouton acheter
-      bouton.classList.add("btn")
-      bouton.classList.add("btn-outline-dark")
-      bouton.classList.add("btn-lg")
-      bouton.setAttribute("onclick", "ajouterPanier()");
-      bouton.textContent = "Acheter"
-      var heading = document.createElement('div');
-      heading.textContent = product.nom.replace(product.nom.charAt(0), product.nom.charAt(0).toUpperCase());
-      heading.className = 'card-title'; 
-      var foot = document.createElement('div');
-      foot.className = 'card-footer text-muted'; 
-      var para = document.createElement('p');
-      para.textContent = product.prix.toFixed(2) +"€";
-      var nutri = document.createElement('span');
-      nutri.textContent = product.nutriscore;
-      var image = document.createElement('img');
-      image.className = 'card-img-top'; 
-      image.src = "images/" + product.image;
-      image.alt = product.nom;
+// //Affichage
+// function showProduct(finalGroup) {
+
+//   var main = document.querySelector('main');
+//   //vidage
+//   while (main.firstChild) {
+//     main.removeChild(main.firstChild);
+//   }
+//   // affichage propduits
+//   if (finalGroup.length === 0) {
+//     var para = document.createElement('p');
+//     para.textContent = 'Aucun résultats';
+//     main.appendChild(para);
+//   }
+//   else {
+//     finalGroup.forEach(product => {
+//       var section = document.createElement('div');
+//       var bouton = document.createElement('button')
+//       var cadre = document.createElement('div')
+//       section.setAttribute('class', product.type);
+//       section.classList.add("card");
+//       section.classList.add("text-center");
+//       bouton.setAttribute('class', 'button'); // ajout du bouton acheter
+//       bouton.classList.add("btn")
+//       bouton.classList.add("btn-outline-dark")
+//       bouton.classList.add("btn-lg")
+//       bouton.setAttribute("onclick", "ajouterPanier()");
+//       bouton.textContent = "Acheter"
+//       var heading = document.createElement('div');
+//       heading.textContent = product.nom.replace(product.nom.charAt(0), product.nom.charAt(0).toUpperCase());
+//       heading.className = 'card-title'; 
+//       var foot = document.createElement('div');
+//       foot.className = 'card-footer text-muted'; 
+//       var para = document.createElement('p');
+//       para.textContent = product.prix.toFixed(2) +"€";
+//       var nutri = document.createElement('span');
+//       nutri.textContent = product.nutriscore;
+//       var image = document.createElement('img');
+//       image.className = 'card-img-top'; 
+//       image.src = "images/" + product.image;
+//       image.alt = product.nom;
       
-      section.appendChild(heading);
-      section.appendChild(foot);
-      foot.appendChild(para);
-      foot.appendChild(nutri);
-      section.appendChild(image);
-      section.appendChild(bouton);
-      main.appendChild(cadre);
-      cadre.appendChild(section); // Mise en forme du bouton acheter
-    });
-  }
-}
+//       section.appendChild(heading);
+//       section.appendChild(foot);
+//       foot.appendChild(para);
+//       foot.appendChild(nutri);
+//       section.appendChild(image);
+//       section.appendChild(bouton);
+//       main.appendChild(cadre);
+//       cadre.appendChild(section); // Mise en forme du bouton acheter
+//     });
+//   }
+// }
